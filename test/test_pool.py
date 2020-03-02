@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import absolute_import
 import os
 import re
 import math
@@ -35,6 +36,8 @@ from twisted.internet.defer import gatherResults, CancelledError
 import txpool.pool
 from txpool import Pool, cpu_count
 from txpool import PoolError, PoolTimeout
+from six.moves import map
+from six.moves import range
 
 
 @pytest.inlineCallbacks
@@ -47,7 +50,7 @@ def test_pool_1():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
@@ -69,19 +72,19 @@ def test_pool_1():
 
     try:
         result = yield pool.apply_async('math.sqrt', (-1,), timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, PoolError)
 
     try:
         result = yield pool.apply_async(os.path.isdir, directory, timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is True
 
     try:
         result = yield pool.close(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -104,7 +107,7 @@ def test_pool_2(tmpdir):
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
@@ -115,7 +118,7 @@ def test_pool_2(tmpdir):
 
     try:
         result = yield pool.close(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -153,14 +156,14 @@ def test_pool_3():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
 
     try:
         result = yield pool.terminate(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -172,7 +175,7 @@ def test_pool_3():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
@@ -181,7 +184,7 @@ def test_pool_3():
 
     try:
         result = yield pool.on_closure(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -197,25 +200,25 @@ def test_pool_4():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
 
     deferreds = []
-    for _ in xrange(100):
+    for _ in range(100):
         deferreds.append(pool.apply_async('os.listdir', ('....',)))
 
     for d in deferreds:
         try:
             result = yield d
-        except Exception, e:
+        except Exception as e:
             result = e
         assert isinstance(result, PoolError)
 
     try:
         result = yield pool.close(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -231,14 +234,14 @@ def test_pool_5():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
 
     deferreds = []
     cancelleds = set()
-    args = range(1000) + range(-200, 0)
+    args = list(range(300)) + list(range(-200, 0))
     random.shuffle(args)
 
     for i, arg in enumerate(args):
@@ -251,7 +254,7 @@ def test_pool_5():
     for arg, d in deferreds:
         try:
             result = yield d
-        except Exception, e:
+        except Exception as e:
             result = e
 
         if arg in cancelleds:
@@ -263,7 +266,7 @@ def test_pool_5():
 
     try:
         result = yield pool.apply_async('time.sleep', (3,), timeout=1)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, PoolTimeout)
 
@@ -271,7 +274,7 @@ def test_pool_5():
 
     try:
         result = yield pool.on_closure(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -287,7 +290,7 @@ def test_pool_6():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
@@ -298,13 +301,13 @@ def test_pool_6():
 
     try:
         result = yield d
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, CancelledError)
 
     try:
         result = yield pool.close(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -320,7 +323,7 @@ def test_pool_7():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
@@ -334,20 +337,20 @@ def test_pool_7():
     # Try "apply_async" after closing.
     try:
         result = yield pool.apply_async(int, ('1011',), dict(base=2))
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, PoolError)
 
     # Try "on_ready" after closing.
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, PoolError)
 
     try:
         result = yield pool.on_closure(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == 0
@@ -355,7 +358,7 @@ def test_pool_7():
     # Call again after pool has closed.
     try:
         result = yield pool.on_closure()
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
 
@@ -363,13 +366,13 @@ def test_pool_7():
 def test_pool_8():
     try:
         pool = Pool(size=0, name='test8')
-    except Exception, e:
+    except Exception as e:
         pool = e
     assert isinstance(pool, ValueError)
 
     try:
         pool = Pool(size=-10, name='test8')
-    except Exception, e:
+    except Exception as e:
         pool = e
     assert isinstance(pool, ValueError)
 
@@ -384,7 +387,7 @@ def test_pool_9():
 
     try:
         result = yield pool.on_ready(timeout=5)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert result is pool
     assert pool.get_number_of_workers() == pool.size
@@ -392,7 +395,7 @@ def test_pool_9():
     # This will timeout as we haven't called "close".
     try:
         result = yield pool.on_closure(timeout=2)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, PoolTimeout)
 
@@ -402,7 +405,7 @@ def test_pool_9():
     # again.
     try:
         result = yield pool.on_ready(timeout=2)
-    except Exception, e:
+    except Exception as e:
         result = e
     assert isinstance(result, PoolTimeout)
     assert pool.get_number_of_workers() == 0
@@ -416,7 +419,7 @@ def test_pool_10():
 
         try:
             result = yield pool.on_ready(timeout=5)
-        except Exception, e:
+        except Exception as e:
             result = e
         assert result is pool
         assert pool.get_number_of_workers() == pool.size

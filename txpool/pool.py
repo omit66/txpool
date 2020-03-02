@@ -21,12 +21,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__all__ = ['Pool', 'PoolError', 'PoolTimeout', 'cpu_count']
-
+from __future__ import absolute_import
+import six
+from six.moves import range
 
 import os
 import sys
-import cPickle as pickle
+import six.moves.cPickle as pickle
 from collections import deque
 from logging import INFO, ERROR
 from multiprocessing import cpu_count
@@ -34,6 +35,7 @@ from twisted.protocols.basic import NetstringReceiver
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.defer import succeed, fail, Deferred
 
+__all__ = ['Pool', 'PoolError', 'PoolTimeout', 'cpu_count']
 
 DEFAULT_POOL_SIZE = 2
 
@@ -205,7 +207,7 @@ class Job(object):
         return '\n'.join(self._log_lines or ())
 
     def __repr__(self):
-        if isinstance(self.call, basestring):
+        if isinstance(self.call, six.string_types):
             name = self.call
         else:
             name = repr(self.call)
@@ -215,7 +217,7 @@ class Job(object):
                 for arg in self.args:
                     yield repr(arg)
             if self.kwargs:
-                for item in self.kwargs.iteritems():
+                for item in six.iteritems(self.kwargs):
                     yield '%s=%r' % item
 
         return ('<%s object at %#x: %s(%s)>' %
@@ -258,7 +260,7 @@ class PoolManager(object):
 
         self.size = size
 
-        for _ in xrange(size):
+        for _ in range(size):
             self.start_worker()
 
     def is_ready(self):
@@ -538,7 +540,7 @@ class Liner(object):
         self.remains = ''
 
     def add(self, text):
-        lines = (self.remains + text).splitlines()
+        lines = (self.remains + text.decode('latin-1')).splitlines()
         self.remains = lines.pop(-1)
 
         for line in lines:

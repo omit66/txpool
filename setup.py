@@ -18,10 +18,10 @@ setup(
     author_email='escattone@gmail.com',
     url='https://github.com/escattone/txpool',
     packages=['txpool'],
-    install_requires=['twisted>=12'],
+    install_requires=['twisted>=12', 'six>=1.10'],
     classifiers=[
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3.5',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Framework :: Twisted',
